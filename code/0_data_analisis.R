@@ -182,14 +182,15 @@ alpha_mur
 # Curva rango abundancia ----------------------------------------
 
 
-rank_abund_data <- rankabund_df(comm_mur, group = "sites")
+rank_abund_data <- rankabund_df(comm_mur, group = "sites") |>
+  ungroup()
 rank_abund_data
 
 rank_abund_data1 <- rank_abund_data |>
   dplyr::left_join(abrev, by = "species")
 rank_abund_data1 |>
   filter(is.na(abreviacion))
-
+rank_abund_data1
 rank_abund_data1 |>
   dplyr::mutate(full_order = seq(1, length(sites))) |>
   tidyr::separate(species, c("genus", "specie"), sep = " ") |>
@@ -214,8 +215,8 @@ rank_abund_data1 |>
   #          hjust = -.2, size = 5,
   #          max.overlaps = 2) +
   scale_x_continuous(
-    breaks = seq(1, 25, 5),
-    limits = c(0, 25)
+    breaks = seq(1, 75, 5),
+    limits = c(0, 75)
   ) +
   scale_y_continuous(limits = c(0, 1.8)) +
   theme_bw() +
