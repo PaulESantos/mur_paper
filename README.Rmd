@@ -11,11 +11,9 @@ knitr::opts_chunk$set(
 )
 ```
 
-# mur_paper
+# mur_paper Repo
 
 <!-- badges: start -->
 <!-- badges: end -->
 
-The goal of mur_paper is to ...
-
-What is special about using `README.Rmd` instead of just `README.md`? You can include R chunks like so:
+El objetivo de este repositorio es el de almacenar el código empleado para el artículo científico: **Diversidad y composición de murciélagos en el distrito de Pichari VRAEM (Valle de los Ríos Apurímac, Ene y Mantaro) – La convención Cusco, Perú**
