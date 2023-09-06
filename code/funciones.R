@@ -96,7 +96,7 @@ rankabund_df <- function(comm, group = "none"){
 stat_waffle <- function(mapping = NULL, data = NULL, geom = "waffle",
                         n_rows = 10, make_proportional = FALSE, flip = FALSE,
                         radius = grid::unit(0, "npc"),
-                        na.rm = NA, show.legend = NA,
+                        na.rm = TRUE, show.legend = NA,
                         inherit.aes = TRUE, ...) {
 
   # msg("Called => stat_waffle::stat_waffle()")
@@ -478,7 +478,7 @@ draw_key_waffle <- function(data, params, size, ...) { # nocov start
 #'   facet_wrap(~fct)
 geom_waffle_p <- function(mapping = NULL, data = NULL,
                           n_rows = 10, make_proportional = FALSE, flip = FALSE,
-                          na.rm = NA, show.legend = NA,
+                          na.rm = TRUE, show.legend = NA,
                           radius = grid::unit(0, "npc"),
                           inherit.aes = TRUE, ...) {
 

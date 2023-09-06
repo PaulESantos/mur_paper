@@ -8,14 +8,17 @@ library(vegan)
 source("code/funciones.R")
 # Importar data ------------------------------------------------------------
 
-data <- readxl::read_excel("data/base de datos final.xlsx", sheet = 1) |>
+data <- readxl::read_excel("data/base_datos_final.xlsx", sheet = "bd") |>
   janitor::clean_names() |>
   dplyr::select(fecha, especie, tipo_de_bosque) |>
   tidyr::drop_na() |>
   dplyr::mutate(especie = stringr::str_trim(especie) |>
     stringr::str_to_sentence())
+
 data
-abrev <- readxl::read_excel("data/base de datos final.xlsx", sheet = 2) |>
+data1
+abrev <- readxl::read_excel("data/base_datos_final.xlsx",
+                            sheet = "abreviaciones") |>
   janitor::clean_names() |>
   dplyr::mutate(especie = stringr::str_trim(especie) |>
     stringr:::str_to_sentence()) |>
@@ -31,14 +34,21 @@ comm_mur <- data |>
   dplyr::summarise(
     abundancia = dplyr::n(),
     .groups = "drop"
-  ) |>
-  dplyr::mutate(tipo_de_bosque = dplyr::case_when(
-    tipo_de_bosque == "Bosque de colina baja" ~ "BCB",
+  )
+
+comm_mur
+data |>
+  distinct(tipo_de_bosque)
+
+comm_mur <- comm_mur |>
+dplyr::mutate(tipo_de_bosque = dplyr::case_when(
+    tipo_de_bosque == "Area de bosque no amazonico" ~ "ABNA",
     tipo_de_bosque == "Bosque de montaña basimontano" ~ "BMBM",
-    tipo_de_bosque == "Bosque de montaña montano" ~ "BMM",
-    tipo_de_bosque == "Bosque de terraza baja" ~ "BTB"
+    tipo_de_bosque == "Bosque de montaña montano" ~ "BMM"
   ))
 
+comm_mur |>
+  distinct(tipo_de_bosque)
 comm_mur |>
   pesa::check_na()
 
@@ -57,59 +67,50 @@ comm_dia <- data |>
     abun = dplyr::n(),
     .groups = "drop"
   ) |>
-  dplyr::mutate(
-    tipo_de_bosque = dplyr::case_when(
-      tipo_de_bosque == "Bosque de colina baja" ~ "BCB",
-      tipo_de_bosque == "Bosque de montaña basimontano" ~ "BMBM",
-      tipo_de_bosque == "Bosque de montaña montano" ~ "BMM",
-      tipo_de_bosque == "Bosque de terraza baja" ~ "BTB"
-    ),
-    tipo_de_bosque = paste0(tipo_de_bosque, "_", daya)
-  )
+dplyr::mutate(tipo_de_bosque = dplyr::case_when(
+  tipo_de_bosque == "Area de bosque no amazonico" ~ "ABNA",
+  tipo_de_bosque == "Bosque de montaña basimontano" ~ "BMBM",
+  tipo_de_bosque == "Bosque de montaña montano" ~ "BMM"
+),
+tipo_de_bosque = paste0(tipo_de_bosque, "_", daya)
+)
+
 
 comm_dia |>
   tbl_to_comm(tipo_de_bosque, especie, abun)
 
-## Bosque de colina baja
+## Area de bosque no amazonico
 
-bcb_comm <- comm_dia |>
-  dplyr::filter(stringr::str_detect(tipo_de_bosque, "BCB")) |>
+abna_comm <- comm_dia |>
+  dplyr::filter(stringr::str_detect(tipo_de_bosque, "ABNA")) |>
   tbl_to_comm(tipo_de_bosque, especie, abun)
-bcb_comm
+abna_comm
 
 ## Bosque de montaña basimontano
 
 bmbm_comm <- comm_dia |>
   dplyr::filter(stringr::str_detect(tipo_de_bosque, "BMBM")) |>
   tbl_to_comm(tipo_de_bosque, especie, abun)
-
+bmbm_comm
 ## Bosque de montaña montano
 
 bmm_comm <- comm_dia |>
   dplyr::filter(stringr::str_detect(tipo_de_bosque, "BMM")) |>
   tbl_to_comm(tipo_de_bosque, especie, abun)
-
-## Bosque de terraza baja
-
-btb_comm <- comm_dia |>
-  dplyr::filter(stringr::str_detect(tipo_de_bosque, "BTB")) |>
-  tbl_to_comm(tipo_de_bosque, especie, abun)
-
+bmm_comm
 
 
 # Curva de acumulación ------------------------------------------
 
-accum_sitio <- dplyr::bind_rows(get_accum_data(bcb_comm, method = "exact"),
+accum_sitio <- dplyr::bind_rows(get_accum_data(abna_comm, method = "exact"),
   get_accum_data(bmbm_comm, method = "exact"),
   get_accum_data(bmm_comm, method = "exact"),
-  get_accum_data(btb_comm, method = "exact"),
   .id = c("site")
 ) |>
   dplyr::mutate(site = dplyr::case_when(
-    site == "1" ~ "BCB",
+    site == "1" ~ "ABNA",
     site == "2" ~ "BMBM",
-    site == "3" ~ "BMM",
-    site == "4" ~ "BTB"
+    site == "3" ~ "BMM"
   ))
 accum_sitio
 
@@ -163,7 +164,7 @@ ggview(
   height = 9,
   width = 15
 )
-ggsave("img/species_acumulation.png",
+ggsave("img/species_acumulation_05092023.png",
   dpi = 600,
   units = "cm",
   height = 9,
@@ -205,7 +206,7 @@ rank_abund_data1 |>
     size = 2
   ) +
   geom_line(aes(group = sites, color = sites),
-    size = 1, linetype = "dotted"
+    linewidth = 1, linetype = "dotted"
   ) +
   geom_text(aes(label = abreviacion, color = sites),
     hjust = -.2, size = 5,
@@ -238,7 +239,7 @@ ggview(
   height = 7,
   width = 11
 )
-ggsave("img/rank_abund.jpeg",
+ggsave("img/rank_abund_05092023.jpeg",
   dpi = 600,
   height = 7,
   width = 11
@@ -274,7 +275,7 @@ ggview(
   height = 7,
   width = 12
 )
-ggsave("img/dendrograma.jpeg",
+ggsave("img/dendrograma_05092023.jpeg",
        dpi = 600,
        units = "cm",
        height = 7,
@@ -285,10 +286,9 @@ ggsave("img/dendrograma.jpeg",
 # waffle chart ------------------------------------------------------------
 sp_by_site <- data |>
   mutate(tb = case_when(
-    tipo_de_bosque == "Bosque de colina baja" ~ "BCB",
+    tipo_de_bosque == "Area de bosque no amazonico" ~ "ABNA",
     tipo_de_bosque == "Bosque de montaña basimontano" ~ "BMBM",
-    tipo_de_bosque == "Bosque de montaña montano" ~ "BMM",
-    tipo_de_bosque == "Bosque de terraza baja" ~ "BTB"
+    tipo_de_bosque == "Bosque de montaña montano" ~ "BMM"
   )) |>
   select(-c(fecha, tipo_de_bosque)) |>
   distinct()
@@ -304,6 +304,7 @@ summari_tab <- sp_by_site |>
     shared = group == length(unique(sp_by_site$tb))
   )
 
+summari_tab
 df_dat <- summari_tab |>
   group_by(tb, group) |>
   summarise(
@@ -312,9 +313,9 @@ df_dat <- summari_tab |>
   ) |>
   mutate(
     tb = factor(tb,
-      levels = c("BTB", "BCB", "BMBM", "BMM")
+      levels = c("ABNA", "BMM", "BMBM")
     ),
-    group = factor(group, levels = c("1", "2", "3", "4"))
+    group = factor(group, levels = c("1", "2", "3"))
   )
 
 ggplot(df_dat, aes(fill = group, values = sp_by_group)) +
@@ -348,7 +349,7 @@ ggview(
   height = 12,
   width = 8
 )
-ggsave("img/presence_by_forest.jpeg",
+ggsave("img/presence_by_forest_05092023.jpeg",
        dpi = 600,
        units = "cm",
        height = 12,
